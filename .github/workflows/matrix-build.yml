@@ -1,0 +1,51 @@
+name: Matrix Build Demo (ec60586)
+
+on:
+  # Run on pushes to main/master
+  push:
+    branches: [ main, master ]
+  # Allow manual triggering from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-matrix:
+    # Run all matrix jobs on the latest Ubuntu runner
+    runs-on: ubuntu-latest
+    
+    strategy:
+      # Don't cancel other jobs if one fails
+      fail-fast: false
+      matrix:
+        # Requirement 1: Matrix with 3 variants (Python versions)
+        # This will create 3 parallel jobs for 3.9, 3.10, and 3.11
+        python-version: ['3.9', '3.10', '3.11']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Requirement 4: Step with the identifier "matrix-ec60586"
+      - name: matrix-ec60586
+        run: |
+          echo "Building for Python version ${{ matrix.python-version }}"
+          python --version
+
+      # Requirement 3 (Part 1): Generate a non-empty artifact
+      - name: Generate build artifact
+        run: |
+          echo "This is the build output for Python ${{ matrix.python-version }}."
+          echo "Generated on $(date)" > build-output-py${{ matrix.python-version }}.txt
+
+      # Requirement 3 (Part 2): Upload the artifact with the correct name
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Name must have the prefix: build-ec60586-<variant>
+          name: build-ec60586-py${{ matrix.python-version }}
+          # Path to the non-empty file to upload
+          path: build-output-py${{ matrix.python-version }}.txt
